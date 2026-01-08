@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Guide Postman – Tester un Backend Express</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f5f6fa;
+      color: #2c3e50;
+      line-height: 1.8;
+      padding: 20px;
+    }
+    h1, h2, h3, h4 {
+      color: #1a237e;
+    }
+    section {
+      background: #ffffff;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    }
+    pre {
+      background: #eeeeee;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    ul {
+      margin-left: 25px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Guide Complet Postman – Tester un Backend Node.js / Express</h1>
+
+<p>
+Ce document explique comment tester un backend Express avec Postman.
+Il s’adresse à des débutants et explique tous les concepts fondamentaux.
+</p>
+
+<hr>
+
+<section>
+<h2>1. Qu’est-ce que Postman</h2>
+
+<p>
+Postman est un outil qui permet d’envoyer des requêtes HTTP vers un serveur backend
+sans passer par une interface graphique (frontend).
+</p>
+
+<p>
+Postman est utilisé pour :
+</p>
+
+<ul>
+  <li>Tester une API pendant le développement</li>
+  <li>Vérifier que les routes fonctionnent</li>
+  <li>Envoyer des données au serveur</li>
+  <li>Lire les réponses retournées par l’API</li>
+</ul>
+
+<p>
+Postman simule ce que ferait un frontend (React, mobile, etc.).
+</p>
+</section>
+
+<section>
+<h2>2. Concepts fondamentaux d’une API</h2>
+
+<h3>2.1 Le Host</h3>
+
+<p>
+Le <strong>host</strong> est l’adresse du serveur.
+</p>
+
+<pre>
+http://localhost
+</pre>
+
+<p>
+<code>localhost</code> signifie que le serveur tourne sur votre ordinateur.
+</p>
+
+<h3>2.2 Le Port</h3>
+
+<p>
+Le <strong>port</strong> identifie l’application sur le serveur.
+</p>
+
+<pre>
+http://localhost:3000
+</pre>
+
+<p>
+Dans notre projet, Express écoute sur le port <code>3000</code>.
+</p>
+
+<h3>2.3 L’URL complète</h3>
+
+<p>
+Une URL complète est composée de :
+</p>
+
+<pre>
+http://localhost:3000/auth/register
+</pre>
+
+<ul>
+  <li>http : protocole</li>
+  <li>localhost : host</li>
+  <li>3000 : port</li>
+  <li>/auth/register : endpoint</li>
+</ul>
+
+</section>
+
+<section>
+<h2>3. Méthodes HTTP</h2>
+
+<p>
+Les méthodes HTTP indiquent l’action que l’on souhaite effectuer.
+</p>
+
+<ul>
+  <li><strong>GET</strong> : récupérer des données</li>
+  <li><strong>POST</strong> : créer des données</li>
+  <li><strong>PUT</strong> : modifier des données</li>
+  <li><strong>DELETE</strong> : supprimer des données</li>
+</ul>
+
+<p>
+Dans ce projet :
+</p>
+
+<ul>
+  <li>GET /annonces → récupérer les annonces</li>
+  <li>POST /auth/register → créer un utilisateur</li>
+  <li>POST /annonces/create → créer une annonce</li>
+</ul>
+
+</section>
+
+<section>
+<h2>4. Les Headers</h2>
+
+<p>
+Les headers contiennent des informations supplémentaires envoyées au serveur.
+</p>
+
+<p>
+Pour une API JSON, le header le plus important est :
+</p>
+
+<pre>
+Content-Type: application/json
+</pre>
+
+<p>
+Cela indique au serveur que le body de la requête est au format JSON.
+</p>
+</section>
+
+<section>
+<h2>5. Le Body</h2>
+
+<p>
+Le <strong>body</strong> contient les données envoyées au serveur.
+</p>
+
+<p>
+Dans Postman, on choisit :
+</p>
+
+<ul>
+  <li>Body</li>
+  <li>raw</li>
+  <li>JSON</li>
+</ul>
+
+</section>
+
+<section>
+<h2>6. Test des endpoints – Cas pratiques</h2>
+
+<h3>6.1 Créer un utilisateur</h3>
+
+<p>
+Méthode :
+</p>
+<pre>POST</pre>
+
+<p>
+URL :
+</p>
+<pre>http://localhost:3000/auth/register</pre>
+
+<p>
+Headers :
+</p>
+
+<pre>
+Content-Type: application/json
+</pre>
+
+<p>
+Body :
+</p>
+
+<pre>
+{
+  "email": "test@mail.com",
+  "password": "password123"
+}
+</pre>
+
+<p>
+Réponse attendue :
+</p>
+
+<pre>
+{
+  "message": "Utilisateur créé"
+}
+</pre>
+
+</section>
+
+<section>
+<h3>6.2 Créer une annonce</h3>
+
+<p>
+Méthode :
+</p>
+<pre>POST</pre>
+
+<p>
+URL :
+</p>
+<pre>http://localhost:3000/annonces/create</pre>
+
+<p>
+Body :
+</p>
+
+<pre>
+{
+  "titre": "Appartement à louer",
+  "description": "Appartement 3 pièces",
+  "user_id": 1,
+  "category_id": 2
+}
+</pre>
+
+<p>
+Réponse attendue :
+</p>
+
+<pre>
+{
+  "message": "Annonce créée"
+}
+</pre>
+
+</section>
+
+<section>
+<h3>6.3 Récupérer toutes les annonces</h3>
+
+<p>
+Méthode :
+</p>
+<pre>GET</pre>
+
+<p>
+URL :
+</p>
+<pre>http://localhost:3000/annonces</pre>
+
+<p>
+Réponse attendue :
+</p>
+
+<pre>
+{
+  "data": [
+    {
+      "id": 1,
+      "titre": "Appartement à louer",
+      "description": "Appartement 3 pièces",
+      "user_id": 1,
+      "category_id": 2
+    }
+  ]
+}
+</pre>
+
+</section>
+
+<section>
+<h2>7. Comprendre les réponses HTTP</h2>
+
+<ul>
+  <li><strong>200</strong> : requête réussie</li>
+  <li><strong>201</strong> : ressource créée</li>
+  <li><strong>400</strong> : erreur de validation</li>
+  <li><strong>404</strong> : route inexistante</li>
+  <li><strong>500</strong> : erreur serveur</li>
+</ul>
+
+</section>
+
+<section>
+<h2>8. Erreurs courantes</h2>
+
+<ul>
+  <li>Serveur non lancé</li>
+  <li>Mauvais port</li>
+  <li>Mauvais Content-Type</li>
+  <li>Données manquantes dans le body</li>
+  <li>Route mal écrite</li>
+</ul>
+
+</section>
+
+<section>
+<h2>Conclusion</h2>
+
+<p>
+Postman est un outil indispensable pour tester et comprendre une API backend.
+Avant même d’avoir un frontend, il permet de valider toute la logique serveur.
+</p>
+
+<p>
+Une fois les tests Postman validés, le frontend peut consommer l’API en toute confiance.
+</p>
+
+</section>
+
+</body>
+</html>

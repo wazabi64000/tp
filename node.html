@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Guide Complet Backend Node.js – MVC Express MySQL</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f5f6fa;
+      color: #2c3e50;
+      line-height: 1.8;
+      padding: 20px;
+    }
+    h1, h2, h3, h4 {
+      color: #1a237e;
+    }
+    section {
+      background: #ffffff;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    }
+    pre {
+      background: #ececec;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    ul {
+      margin-left: 25px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Guide Backend Complet – Node.js / Express / MySQL (MVC)</h1>
+
+<p>
+Ce document explique pas à pas comment créer un backend professionnel pour un site de petites annonces.
+Tout est détaillé : dossiers, fichiers, logique, sécurité, validation, architecture MVC.
+</p>
+
+<hr>
+
+<section>
+<h2>1. Création du projet</h2>
+
+<h3>1.1 Création du dossier</h3>
+
+<pre>
+mkdir backend-annonces
+cd backend-annonces
+</pre>
+
+<h3>1.2 Initialisation Node.js</h3>
+
+<pre>
+npm init -y
+</pre>
+
+<p>
+Cela crée le fichier <code>package.json</code> qui décrit le projet.
+</p>
+
+<h3>1.3 Activation des modules ES</h3>
+
+<p>
+Dans <code>package.json</code>, ajouter :
+</p>
+
+<pre>
+{
+  "type": "module"
+}
+</pre>
+
+<p>
+Cela permet d’utiliser <code>import</code> et <code>export</code>.
+</p>
+</section>
+
+<section>
+<h2>2. Installation des dépendances</h2>
+
+<pre>
+npm install express mysql2 dotenv argon2 joi cors
+npm install nodemon --save-dev
+</pre>
+
+<h3>Rôle des dépendances</h3>
+<ul>
+  <li>express : serveur HTTP</li>
+  <li>mysql2 : connexion MySQL</li>
+  <li>dotenv : variables d’environnement</li>
+  <li>argon2 : chiffrement des mots de passe</li>
+  <li>joi : validation des données</li>
+  <li>cors : communication avec le frontend</li>
+</ul>
+</section>
+
+<section>
+<h2>3. Arborescence complète du projet</h2>
+
+<pre>
+backend-annonces/
+│
+├── config/
+│   └── db.js
+│
+├── models/
+│   ├── user.model.js
+│   ├── annonce.model.js
+│
+├── controllers/
+│   ├── auth.controller.js
+│   ├── annonce.controller.js
+│
+├── validations/
+│   ├── auth.validation.js
+│   ├── annonce.validation.js
+│
+├── routes/
+│   ├── auth.route.js
+│   ├── annonce.route.js
+│
+├── .env
+└── server.js
+</pre>
+</section>
+
+<section>
+<h2>4. Variables d’environnement</h2>
+
+<h3>Fichier .env</h3>
+
+<pre>
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=annonces_db
+</pre>
+
+<p>
+Ce fichier contient les informations sensibles.  
+Il ne doit jamais être versionné.
+</p>
+</section>
+
+<section>
+<h2>5. Connexion à MySQL</h2>
+
+<h3>config/db.js</h3>
+
+<pre>
+import mysql from "mysql2/promise";
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
+});
+
+export default pool;
+</pre>
+
+<p>
+Le pool gère automatiquement les connexions à la base de données.
+</p>
+</section>
+
+<section>
+<h2>6. Modèles (Models)</h2>
+
+<h3>models/user.model.js</h3>
+
+<pre>
+import db from "../config/db.js";
+
+export const createUser = async (email, password) => {
+  const [result] = await db.query(
+    "INSERT INTO users (email, password) VALUES (?, ?)",
+    [email, password]
+  );
+  return result.insertId;
+};
+
+export const findUserByEmail = async (email) => {
+  const [rows] = await db.query(
+    "SELECT * FROM users WHERE email = ?",
+    [email]
+  );
+  return rows[0];
+};
+</pre>
+
+<h3>models/annonce.model.js</h3>
+
+<pre>
+import db from "../config/db.js";
+
+export const getAllAnnonces = async () => {
+  const [rows] = await db.query(
+    "SELECT * FROM annonces"
+  );
+  return rows;
+};
+
+export const createAnnonce = async (data) => {
+  const { titre, description, user_id, category_id } = data;
+  await db.query(
+    "INSERT INTO annonces (titre, description, user_id, category_id) VALUES (?, ?, ?, ?)",
+    [titre, description, user_id, category_id]
+  );
+};
+</pre>
+</section>
+
+<section>
+<h2>7. Validation des données</h2>
+
+<h3>validations/auth.validation.js</h3>
+
+<pre>
+import Joi from "joi";
+
+export const registerSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required()
+});
+</pre>
+
+<h3>validations/annonce.validation.js</h3>
+
+<pre>
+import Joi from "joi";
+
+export const annonceSchema = Joi.object({
+  titre: Joi.string().min(3).required(),
+  description: Joi.string().required(),
+  user_id: Joi.number().required(),
+  category_id: Joi.number().required()
+});
+</pre>
+</section>
+
+<section>
+<h2>8. Controllers</h2>
+
+<h3>controllers/auth.controller.js</h3>
+
+<pre>
+import argon2 from "argon2";
+import { createUser, findUserByEmail } from "../models/user.model.js";
+import { registerSchema } from "../validations/auth.validation.js";
+
+export const register = async (req, res) => {
+  const { error } = registerSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  const { email, password } = req.body;
+
+  const user = await findUserByEmail(email);
+  if (user) {
+    return res.status(400).json({ message: "Utilisateur existant" });
+  }
+
+  const hashedPassword = await argon2.hash(password);
+
+  await createUser(email, hashedPassword);
+
+  res.status(201).json({ message: "Utilisateur créé" });
+};
+</pre>
+
+<h3>controllers/annonce.controller.js</h3>
+
+<pre>
+import { getAllAnnonces, createAnnonce } from "../models/annonce.model.js";
+import { annonceSchema } from "../validations/annonce.validation.js";
+
+export const getAnnonces = async (req, res) => {
+  const annonces = await getAllAnnonces();
+  res.json({ data: annonces });
+};
+
+export const addAnnonce = async (req, res) => {
+  const { error } = annonceSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  await createAnnonce(req.body);
+  res.status(201).json({ message: "Annonce créée" });
+};
+</pre>
+</section>
+
+<section>
+<h2>9. Routes</h2>
+
+<h3>routes/auth.route.js</h3>
+
+<pre>
+import express from "express";
+import { register } from "../controllers/auth.controller.js";
+
+const router = express.Router();
+
+router.post("/register", register);
+
+export default router;
+</pre>
+
+<h3>routes/annonce.route.js</h3>
+
+<pre>
+import express from "express";
+import { getAnnonces, addAnnonce } from "../controllers/annonce.controller.js";
+
+const router = express.Router();
+
+router.get("/", getAnnonces);
+router.post("/create", addAnnonce);
+
+export default router;
+</pre>
+</section>
+
+<section>
+<h2>10. Serveur principal</h2>
+
+<h3>server.js</h3>
+
+<pre>
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+import authRoutes from "./routes/auth.route.js";
+import annonceRoutes from "./routes/annonce.route.js";
+
+dotenv.config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.use("/auth", authRoutes);
+app.use("/annonces", annonceRoutes);
+
+app.listen(process.env.PORT, () => {
+  console.log("Serveur démarré sur http://localhost:" + process.env.PORT);
+});
+</pre>
+</section>
+
+<section>
+<h2>11. Flux complet d’une requête</h2>
+
+<ul>
+  <li>Le frontend envoie une requête HTTP</li>
+  <li>La route reçoit la requête</li>
+  <li>Le controller valide et traite</li>
+  <li>Le modèle interagit avec MySQL</li>
+  <li>La réponse est renvoyée</li>
+</ul>
+</section>
+
+<section>
+<h2>Conclusion</h2>
+
+<p>
+Ce backend est une base professionnelle, claire, évolutive et sécurisée.
+Il est prêt à être connecté à un frontend React.
+</p>
+</section>
+
+<a href="./test.html">TESTES POSTMAN </a>
+
+</body>
+</html>
