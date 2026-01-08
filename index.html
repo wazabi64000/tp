@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cours Complet Bases de Données – SQL, MCD, UML</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #1a237e;
+    }
+    section {
+      background: #fff;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    pre, code {
+      background-color: #e0e0e0;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      overflow-x: auto;
+      display: block;
+      margin: 10px 0;
+    }
+    .schema {
+      background: #e8eaf6;
+      padding: 15px;
+      border-left: 5px solid #3f51b5;
+      margin: 15px 0;
+      font-family: monospace;
+    }
+    ul {
+      margin: 10px 0 10px 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Cours Complet sur les Bases de Données pour Débutants</h1>
+
+<p>
+Ce cours présente les concepts fondamentaux de la modélisation de données à travers trois approches complémentaires : SQL, MCD et UML. 
+L'objectif est de comprendre comment créer et organiser les informations dans une base de données et comment ces informations peuvent être utilisées dans des applications réelles.
+</p>
+
+<p>
+Nous prendrons comme exemple un site de petites annonces. Ce type de projet est simple à comprendre et permet de montrer de manière pratique :
+</p>
+
+<ul>
+  <li>Comment structurer les utilisateurs, annonces et catégories.</li>
+  <li>Comment relier les tables entre elles grâce aux clés étrangères.</li>
+  <li>Comment transformer un schéma conceptuel en SQL et en diagramme UML.</li>
+</ul>
+
+<hr>
+
+<section>
+<h2>1. Comprendre les Tables SQL et les Relations</h2>
+
+<p>
+Une table en SQL représente une entité métier. Chaque ligne de la table correspond à un enregistrement (un objet réel ou conceptuel), et chaque colonne correspond à un attribut ou une propriété de cette entité.
+</p>
+
+<h3>Principes fondamentaux des tables</h3>
+
+<ul>
+  <li><strong>PRIMARY KEY</strong> : identifiant unique de chaque enregistrement. Aucune valeur ne peut se répéter.</li>
+  <li><strong>FOREIGN KEY</strong> : permet de créer une relation entre deux tables, en reliant une colonne d'une table à la clé primaire d'une autre.</li>
+  <li><strong>1-N (un à plusieurs)</strong> : une entité peut être liée à plusieurs autres entités. Exemple : un utilisateur peut avoir plusieurs annonces.</li>
+  <li><strong>N-M (plusieurs à plusieurs)</strong> : nécessite une table intermédiaire pour gérer la relation. Exemple : un étudiant peut suivre plusieurs cours, et chaque cours peut avoir plusieurs étudiants.</li>
+  <li><strong>NOT NULL</strong> : indique que la valeur d'une colonne ne peut pas être vide.</li>
+  <li><strong>AUTO_INCREMENT</strong> : permet à la base de données d’attribuer automatiquement un identifiant unique pour chaque nouvel enregistrement.</li>
+</ul>
+
+<h3>Exemple concret : site de petites annonces</h3>
+
+<p>
+Nous aurons trois entités principales : <code>users</code>, <code>categories</code> et <code>annonces</code>.
+</p>
+
+<pre>
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE annonces (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  titre VARCHAR(255) NOT NULL,
+  description TEXT,
+  user_id INT NOT NULL,
+  category_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+</pre>
+
+<p>
+Explications :<br>
+- Chaque utilisateur possède un identifiant unique et peut créer plusieurs annonces. <br>
+- Chaque annonce appartient à une seule catégorie et à un seul utilisateur. <br>
+- Chaque catégorie peut contenir plusieurs annonces. <br>
+- On peut ajouter des champs supplémentaires pour un vrai projet : images, statut (active/sold), localisation, prix.
+</p>
+
+</section>
+
+<section>
+<h2>2. Modèle Conceptuel de Données (MCD)</h2>
+
+<p>
+Le MCD est une représentation abstraite des données. Il permet de visualiser les entités, leurs relations et les cardinalités sans se soucier du code SQL.
+</p>
+
+<h3>Entités pour notre exemple</h3>
+<ul>
+  <li><strong>Utilisateur</strong> : id, email, password, date de création</li>
+  <li><strong>Annonce</strong> : id, titre, description, date de création, lien vers utilisateur et catégorie</li>
+  <li><strong>Catégorie</strong> : id, nom de la catégorie</li>
+</ul>
+
+<h3>Relations et cardinalités</h3>
+
+<div class="schema">
+UTILISATEUR (1,N) ── crée ── (1,1) ANNONCE
+ANNONCE (1,1) ─ appartient ─ (1,N) CATEGORIE
+</div>
+
+<p>
+Interprétation :<br>
+- Un utilisateur peut créer plusieurs annonces, mais chaque annonce a un seul utilisateur. <br>
+- Une annonce appartient à une seule catégorie, mais une catégorie peut contenir plusieurs annonces. <br>
+- Les cardinalités 1,N indiquent le nombre minimum et maximum d’objets impliqués dans la relation.
+</p>
+
+<h3>Adaptation à un vrai projet</h3>
+<ul>
+  <li>Ajouter des relations supplémentaires si nécessaire, par exemple un système de commentaires : une annonce peut avoir plusieurs commentaires.</li>
+  <li>Ajouter des contraintes pour la validation des données : email unique, longueur minimale des champs.</li>
+  <li>Ajouter des attributs supplémentaires comme la date de publication ou la date de modification pour un suivi complet.</li>
+</ul>
+
+</section>
+
+<section>
+<h2>3. UML – Diagramme de classes simplifié</h2>
+
+<p>
+UML permet de représenter les objets d’un projet logiciel et leurs relations. Chaque classe correspond souvent à une table SQL dans un projet réel.
+</p>
+
+<div class="schema"><img src="./uml.png" alt="">
+
+<p>
+Explications :<br>
+- Les nombres 1 et N représentent les multiplicité dans la relation. <br>
+- Chaque annonce est liée à un utilisateur et à une catégorie. <br>
+- Dans un vrai projet, ces classes peuvent avoir des méthodes : <code>publish()</code>, <code>delete()</code>, <code>update()</code>.
+</p>
+
+<h3>Adaptation à un projet réel</h3>
+<ul>
+  <li>Utiliser un ORM (Object-Relational Mapping) comme Sequelize (Node.js) ou Doctrine (PHP) pour mapper ces classes aux tables SQL.</li>
+  <li>Ajouter des validations côté objet avant d’enregistrer dans la base.</li>
+  <li>Permettre l’extension facile des classes pour des fonctionnalités futures : notifications, favoris, filtres, etc.</li>
+</ul>
+
+</section>
+
+<section>
+<h2>4. Conseils pour débutants et mise en pratique</h2>
+
+<ul>
+  <li>Commencez toujours par dessiner votre MCD pour visualiser les entités et relations.</li>
+  <li>Transformez ensuite le MCD en SQL pour créer les tables.</li>
+  <li>Utilisez UML pour planifier vos classes et leur logique métier.</li>
+  <li>Testez vos tables avec quelques données fictives pour vérifier les relations.</li>
+  <li>Pensez à ajouter des champs et contraintes réalistes pour un vrai projet : <code>created_at</code>, <code>updated_at</code>, <code>status</code>, <code>image_url</code>.</li>
+</ul>
+
+<p>
+En suivant ces étapes, vous pourrez facilement adapter ce schéma simple de petites annonces à tout projet réel, que ce soit un site e-commerce, un blog, une application de gestion ou un réseau social.
+</p>
+</section>
+
+</body>
+</html>
